@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Apresentação — Programa de Estágio</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+<style>
+  :root {
+    --purple:      #602F86;
+    --purple-soft: #EDE4F5;
+    --purple-mid:  #9B6BBE;
+    --yellow:      #FFA50A;
+    --yellow-mid:  #FFD470;
+    --yellow-soft: #FFF8E8;
+    --green:       #2D9B5A;
+    --amber:       #E8A020;
+    --red:         #D94040;
+    --dark:        #2C1A0E;
+    --muted:       #8A7560;
+    --border:      #E8D9C0;
+    --white:       #FFFFFF;
+    --bg:          #F8F5F0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--dark);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--purple);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    height: 5px;
+    background: var(--yellow);
+  }
+  .header-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  .header-badge {
+    display: inline-block;
+    background: rgba(255,165,10,0.2);
+    color: var(--yellow-mid);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,165,10,0.3);
+    margin-bottom: 14px;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header p {
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 12px rgba(96,47,134,0.06);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .num {
+    width: 22px;
+    height: 22px;
+    background: var(--purple);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── DROP ZONE ── */
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg);
+    position: relative;
+  }
+  .dropzone:hover, .dropzone.drag-over {
+    border-color: var(--purple-mid);
+    background: var(--purple-soft);
+  }
+  .dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .dropzone-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .dropzone-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .dropzone-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .dropzone.has-file {
+    border-color: var(--green);
+    background: #f0faf4;
+  }
+  .dropzone.has-file .dropzone-icon { font-size: 28px; }
+  .file-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    margin-top: 6px;
+  }
+
+  /* ── FIELDS ── */
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .field input, .field select, .field textarea {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: var(--dark);
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--purple-mid);
+    background: #fff;
+  }
+  .field textarea {
+    resize: vertical;
+    min-height: 70px;
+    line-height: 1.5;
+  }
+  .field-full { grid-column: 1 / -1; }
+
+  /* ── PREVIEW PANEL ── */
+  .preview-panel {
+    display: none;
+    background: var(--purple-soft);
+    border: 1px solid var(--purple-mid);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+  }
+  .preview-panel.visible { display: block; }
+  .preview-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .preview-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .preview-group {
+    background: var(--purple);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .preview-stat {
+    font-size: 12px;
+    color: var(--purple);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  /* ── GENERATE BUTTON ── */
+  .btn-generate {
+    width: 100%;
+    padding: 16px;
+    background: var(--purple);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 0.02em;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-generate::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--yellow);
+  }
+  .btn-generate:hover:not(:disabled) {
+    background: #4e2570;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(96,47,134,0.35);
+  }
+  .btn-generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    display: none;
+    margin-top: 1.25rem;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--yellow));
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ── SUCCESS ── */
+  .success-box {
+    display: none;
+    background: #f0faf4;
+    border: 1.5px solid var(--green);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    text-align: center;
+  }
+  .success-box.visible { display: block; }
+  .success-box .icon { font-size: 28px; margin-bottom: 6px; }
+  .success-box p { font-size: 13px; color: var(--green); font-weight: 600; }
+  .success-box small { font-size: 11.5px; color: var(--muted); }
+
+  /* ── ERROR ── */
+  .error-box {
+    display: none;
+    background: #fff5f5;
+    border: 1.5px solid var(--red);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+  }
+  .error-box.visible { display: block; }
+  .error-box p { font-size: 13px; color: var(--red); font-weight: 500; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    font-size: 11.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 540px) {
+    .field-row { grid-template-columns: 1fr; }
+    .header h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <span class="header-badge">🎓 Programa de Estágio 2026</span>
+    <h1>Gerador de Apresentação</h1>
+    <p>Faça upload da planilha de acompanhamento, informe o mês e baixe o PPTX pronto para enviar aos padrinhos.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- PASSO 1: Upload -->
+  <div class="card">
+    <div class="card-title"><span class="num">1</span> Upload da planilha</div>
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls" />
+      <span class="dropzone-icon">📊</span>
+      <div class="dropzone-label">Clique ou arraste o arquivo aqui</div>
+      <div class="dropzone-sub">Formatos aceitos: .xlsx · .xls</div>
+      <div class="file-name" id="fileName" style="display:none"></div>
+    </div>
+
+    <div class="preview-panel" id="previewPanel">
+      <div class="preview-title">📋 Dados detectados</div>
+      <div class="preview-groups" id="previewGroups"></div>
+      <div class="preview-stat" id="previewStat"></div>
+    </div>
+  </div>
+
+  <!-- PASSO 2: Configurações -->
+  <div class="card">
+    <div class="card-title"><span class="num">2</span> Configurações do checkpoint</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Mês de referência</label>
+        <input type="text" id="mesRef" placeholder="Ex: Maio/2026" value="Maio/2026" />
+      </div>
+      <div class="field">
+        <label>Número do checkpoint</label>
+        <select id="checkpointNum">
+          <option value="1">1 — Abril</option>
+          <option value="2" selected>2 — Maio</option>
+          <option value="3">3 — Junho</option>
+          <option value="4">4 — Julho</option>
+          <option value="5">5 — Agosto</option>
+          <option value="6">6 — Setembro</option>
+          <option value="7">7 — Outubro</option>
+          <option value="8">8 — Novembro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Próximo mês</label>
+        <input type="text" id="proximoMes" placeholder="Ex: Junho" value="Junho" />
+      </div>
+      <div class="field">
+        <label>Total de checkpoints</label>
+        <input type="number" id="totalCheckpoints" value="8" min="1" max="12" />
+      </div>
+      <div class="field field-full">
+        <label>Próximo passo (slide final)</label>
+        <textarea id="proximoPasso" placeholder="Descreva o foco do próximo checkpoint...">Próximo checkpoint: Junho — foco em Solução & Especificações e início de Execução.</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSO 3: Gerar -->
+  <div class="card">
+    <div class="card-title"><span class="num">3</span> Gerar apresentação</div>
+
+    <button class="btn-generate" id="btnGerar" disabled onclick="gerarPPTX()">
+      <span id="btnIcon">⚡</span>
+      <span id="btnText">Selecione a planilha para continuar</span>
+    </button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">Processando...</div>
+    </div>
+
+    <div class="success-box" id="successBox">
+      <div class="icon">✅</div>
+      <p>Apresentação gerada com sucesso!</p>
+      <small id="successDetail"></small>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      <p id="errorMsg"></p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Programa de Estágio 2026 · Ferramenta interna de geração de apresentações
+</div>
+
+<script>
+
+// ══════════════════════════════════════════════════════════════
+// PALETA E CONSTANTES
+// ══════════════════════════════════════════════════════════════
+const C = {
+  YELLOW:      "FFA50A",
+  YELLOW_MID:  "FFD470",
+  PURPLE:      "602F86",
+  PURPLE_SOFT: "EDE4F5",
+  PURPLE_MID:  "9B6BBE",
+  WHITE:       "FFFFFF",
+  DARK:        "2C1A0E",
+  MUTED:       "8A7560",
+  BORDER:      "E8D9C0",
+  GREEN:       "2D9B5A",
+  AMBER:       "E8A020",
+  RED:         "D94040",
+  LILAC:       "EAD4FF",
+};
+const FONT = "Poppins";
+
+const MONTH_COLS = ["Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro"];
+
+function expectedPct(n) { return 16 + 10.5 * n; }
+
+function progStatus(pct100, checkN) {
+  const exp = expectedPct(checkN);
+  if (pct100 >= exp)           return { color: C.GREEN,  label: "No prazo" };
+  if (pct100 >= exp * 0.8)     return { color: C.AMBER,  label: "Satisfatório" };
+  if (pct100 >= exp * 0.6)     return { color: C.YELLOW, label: "Atenção" };
+  return                              { color: C.RED,    label: "Crítico" };
+}
+
+function behavColor(v) {
+  if (v >= 8) return C.GREEN;
+  if (v >= 6) return C.AMBER;
+  return C.RED;
+}
+
+function shadow() {
+  return { type: "outer", blur: 6, offset: 2, angle: 135, color: "000000", opacity: 0.08 };
+}
+
+// ══════════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════════════════════════
+let dadosPlanilha = null;
+
+// ══════════════════════════════════════════════════════════════
+// UI: UPLOAD
+// ══════════════════════════════════════════════════════════════
+const dropzone  = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) processFile(f);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellFormula: false, cellHTML: false });
+      dadosPlanilha = parsePlanilha(wb);
+      showPreview(dadosPlanilha, file.name);
+    } catch(err) {
+      console.error(err);
+      showError("Erro ao ler a planilha: " + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showPreview(dados, fileName) {
+  dropzone.classList.add('has-file');
+  document.getElementById('fileName').style.display = 'block';
+  document.getElementById('fileName').textContent = '✓ ' + fileName;
+
+  const panel = document.getElementById('previewPanel');
+  panel.classList.add('visible');
+
+  const pg = document.getElementById('previewGroups');
+  pg.innerHTML = dados.grupos.map(g =>
+    `<span class="preview-group">${g.name}</span>`
+  ).join('');
+
+  let totalMembros = dados.grupos.reduce((s, g) => s + g.members.length, 0);
+  document.getElementById('previewStat').textContent =
+    `${dados.grupos.length} grupos · ${totalMembros} participantes detectados`;
+
+  document.getElementById('btnGerar').disabled = false;
+  document.getElementById('btnText').textContent = 'Gerar apresentação PPTX';
+}
+
+// ══════════════════════════════════════════════════════════════
+// PARSER DA PLANILHA — baseado na estrutura real confirmada
+// Layout:
+//   Visao Geral:         col B=Grupo, C=Abril...J=Novembro (linhas 9–14)
+//   Comport. Grupo:      col B=Grupo, C=Critério, D=Abril...K=Novembro
+//   Comport. Individual: col B=Grupo, C=Participante, D=Critério, E=Abril...L=Novembro
+//   Gestao de Projeto:   col B=Pilar, C=Item, D=Abril...K=Novembro
+// ══════════════════════════════════════════════════════════════
+function getCell(ws, row, col) {
+  // col: 1-based index. Returns cell value or null.
+  const addr = XLSX.utils.encode_cell({ r: row - 1, c: col - 1 });
+  const cell = ws[addr];
+  if (!cell) return null;
+  const v = cell.v;
+  if (v === undefined || v === null || v === '') return null;
+  const s = String(v).trim();
+  if (s === '—' || s === '-') return null;
+  return v;
+}
+
+function getNum(ws, row, col) {
+  const v = getCell(ws, row, col);
+  if (v === null) return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+
+function getStr(ws, row, col) {
+  const v = getCell(ws, row, col);
+  return v !== null ? String(v).trim() : '';
+}
+
+function parsePlanilha(wb) {
+  const wsVG  = wb.Sheets['Visao Geral'];
+  const wsCG  = wb.Sheets['Comport. Grupo'];
+  const wsCI  = wb.Sheets['Comport. Individual'];
+  const wsGP  = wb.Sheets['Gestao de Projeto'];
+
+  if (!wsVG)  throw new Error('Aba "Visao Geral" não encontrada.');
+  if (!wsCG)  throw new Error('Aba "Comport. Grupo" não encontrada.');
+  if (!wsCI)  throw new Error('Aba "Comport. Individual" não encontrada.');
+  if (!wsGP)  throw new Error('Aba "Gestao de Projeto" não encontrada.');
+
+  // ── 1. VISAO GERAL: grupos e progresso ──────────────────────
+  // Header: B8=Grupo, C8=Abril, D8=Maio ... J8=Novembro
+  // Data rows 9–14 (groups), row 15 = MÉDIA GERAL (skip)
+  const gruposVG = [];
+  for (let row = 9; row <= 20; row++) {
+    const nome = getStr(wsVG, row, 2); // col B
+    if (!nome || nome.toUpperCase().includes('MÉDIA GERAL') || nome.includes('🧠') || nome.includes('📊') || nome.includes('↗')) break;
+    const progData = {};
+    MONTH_COLS.forEach((m, mi) => {
+      const v = getNum(wsVG, row, 3 + mi); // cols C(3) to J(10)
+      progData[m] = v;
+    });
+    gruposVG.push({ name: nome, progData });
+  }
+
+  // ── 2. COMPORT. GRUPO ────────────────────────────────────────
+  // Each group block: header row (Grupo|Critério|Abril...), then 3 data rows
+  // Critério values start with "Feedback:", "Colaboração:", "Engajamento:"
+  const compGrupo = {}; // { "GRUPO": { Feedback: {Abril:9,...}, Colaboração:{...}, Engajamento:{...}, obs:"..." } }
+
+  const cgRange = XLSX.utils.decode_range(wsCG['!ref'] || 'A1:Z200');
+  for (let row = 1; row <= cgRange.e.r + 1; row++) {
+    const grupo    = getStr(wsCG, row, 2); // col B
+    const criterio = getStr(wsCG, row, 3); // col C
+    if (!grupo || grupo.startsWith('▸') || grupo.startsWith('↓') || grupo.startsWith('🔍') || grupo === 'Grupo' || grupo.startsWith('GESTÃO')) continue;
+
+    if (!compGrupo[grupo]) compGrupo[grupo] = { Feedback: {}, Colaboração: {}, Engajamento: {}, obs: '' };
+
+    // Detect criterion by prefix
+    let criKey = null;
+    if (criterio.startsWith('Feedback'))    criKey = 'Feedback';
+    if (criterio.startsWith('Colaboração')) criKey = 'Colaboração';
+    if (criterio.startsWith('Engajamento')) criKey = 'Engajamento';
+    if (criterio === 'Comentários / Observações' || (!criKey && criterio && grupo)) {
+      // obs row — try reading value from last non-empty col
+      const obsVal = getStr(wsCG, row, 4) || getStr(wsCG, row, 5) || '';
+      if (obsVal && !MONTH_COLS.includes(obsVal)) compGrupo[grupo].obs = obsVal;
+      continue;
+    }
+    if (!criKey) continue;
+
+    MONTH_COLS.forEach((m, mi) => {
+      const v = getNum(wsCG, row, 4 + mi); // col D(4) = Abril
+      if (v !== null) compGrupo[grupo][criKey][m] = v;
+    });
+  }
+
+  // ── 3. COMPORT. INDIVIDUAL ───────────────────────────────────
+  // Layout: B=Grupo, C=Participante, D=Critério, E=Abril(col5)...L=Novembro(col12)
+  // Each participant: 3 rows (Engajamento, Destaque, Comentários)
+  const individuais = {}; // { "GRUPO": [ {name, eng:{}, destaque:{}, obs:{}} ] }
+
+  let currentGrupoCI  = '';
+  let currentPartCI   = '';
+  let currentDataCI   = null;
+
+  function commitCI() {
+    if (!currentGrupoCI || !currentPartCI || !currentDataCI) return;
+    if (!individuais[currentGrupoCI]) individuais[currentGrupoCI] = [];
+    // Avoid duplicate (same name)
+    if (!individuais[currentGrupoCI].find(m => m.name === currentPartCI)) {
+      individuais[currentGrupoCI].push({ ...currentDataCI });
+    }
+    currentDataCI = null;
+  }
+
+  const ciRange = XLSX.utils.decode_range(wsCI['!ref'] || 'A1:Z200');
+  for (let row = 1; row <= ciRange.e.r + 1; row++) {
+    const grupo    = getStr(wsCI, row, 2); // col B
+    const part     = getStr(wsCI, row, 3); // col C
+    const criterio = getStr(wsCI, row, 4); // col D
+
+    if (grupo && !grupo.startsWith('▸') && !grupo.startsWith('↓') && !grupo.startsWith('🔍') && grupo !== 'Grupo' && !grupo.startsWith('GESTÃO')) {
+      if (grupo !== currentGrupoCI) { commitCI(); currentGrupoCI = grupo; currentPartCI = ''; }
+    }
+
+    if (part && part !== currentPartCI && part !== 'Participante' && !part.startsWith('▸')) {
+      commitCI();
+      currentPartCI = part;
+      currentDataCI = { name: part, eng: {}, destaque: {}, obs: {} };
+    }
+
+    if (!currentDataCI) continue;
+
+    if (criterio === 'Engajamento') {
+      MONTH_COLS.forEach((m, mi) => {
+        const v = getNum(wsCI, row, 5 + mi); // col E(5) = Abril
+        if (v !== null) currentDataCI.eng[m] = v;
+      });
+    } else if (criterio === 'Destaque') {
+      MONTH_COLS.forEach((m, mi) => {
+        const v = getStr(wsCI, row, 5 + mi);
+        if (v === 'S' || v === 'N') currentDataCI.destaque[m] = (v === 'S');
+      });
+    } else if (criterio === 'Comentários') {
+      // Pick first non-empty month value as obs
+      MONTH_COLS.forEach((m, mi) => {
+        const v = getStr(wsCI, row, 5 + mi);
+        if (v && v !== '—' && v !== '0' && v !== '1') {
+          if (!currentDataCI.obs[m]) currentDataCI.obs[m] = v;
+        }
+      });
+    }
+  }
+  commitCI();
+
+  // ── 4. GESTAO DE PROJETO: pilares ────────────────────────────
+  // Layout: B=Pilar, C=Item, D=Abril(4)...K=Novembro(11)
+  // Group blocks start with "▸ NOME"
+  const pilaresPorGrupo = {}; // { "GRUPO": { "PILAR": [{name, values:{Abril:0,...}}] } }
+
+  let currentGP    = '';
+  let currentPilar = '';
+
+  const gpRange = XLSX.utils.decode_range(wsGP['!ref'] || 'A1:Z300');
+  for (let row = 1; row <= gpRange.e.r + 1; row++) {
+    const b = getStr(wsGP, row, 2); // col B = Pilar or group header
+    const c = getStr(wsGP, row, 3); // col C = Item
+
+    if (b.includes('▸')) {
+      const match = b.replace(/▸/g,'').replace(/─+/g,'').replace(/↑.*/,'').trim();
+      if (match && !match.startsWith('GESTÃO') && !match.startsWith('Preencha')) {
+        currentGP = match; pilaresPorGrupo[currentGP] = {}; currentPilar = '';
+      }
+      continue;
+    }
+    if (!currentGP) continue;
+    if (b === 'Pilar' || b.includes('NAVEGAÇÃO') || b.includes('% PROGRESSO')) continue;
+
+    // Pilar header: B has content, C is empty or also content (item rows have both)
+    if (b && !c) {
+      currentPilar = b;
+      if (!pilaresPorGrupo[currentGP][currentPilar]) pilaresPorGrupo[currentGP][currentPilar] = [];
+      continue;
+    }
+
+    if (b && c) {
+      // This could be a pilar + first item on same conceptual row, or item row (b=pilar, c=item)
+      // If b is a known pilar (has no numbers), set pilar and add item
+      if (!pilaresPorGrupo[currentGP][b]) { currentPilar = b; pilaresPorGrupo[currentGP][b] = []; }
+      const item = { name: c, values: {} };
+      MONTH_COLS.forEach((m, mi) => {
+        const v = getNum(wsGP, row, 4 + mi); // col D(4) = Abril
+        item.values[m] = (v === 1) ? 1 : 0;
+      });
+      pilaresPorGrupo[currentGP][b].push(item);
+      continue;
+    }
+
+    if (!b && c && currentPilar) {
+      // item-only row (pilar blank, item in c)
+      const item = { name: c, values: {} };
+      MONTH_COLS.forEach((m, mi) => {
+        const v = getNum(wsGP, row, 4 + mi);
+        item.values[m] = (v === 1) ? 1 : 0;
+      });
+      pilaresPorGrupo[currentGP][currentPilar].push(item);
+    }
+  }
+
+  // ── 5. ASSEMBLE ──────────────────────────────────────────────
+  function norm(s) { return String(s).toUpperCase().replace(/\s+/g,' ').trim(); }
+
+  function findKey(obj, target) {
+    const nt = norm(target);
+    return Object.keys(obj).find(k => norm(k) === nt)
+        || Object.keys(obj).find(k => norm(k).includes(nt.substring(0,8)))
+        || '';
+  }
+
+  const grupos = gruposVG.map(g => ({
+    name: g.name,
+    progData: g.progData,
+    cgData: compGrupo[findKey(compGrupo, g.name)] || {},
+    members: individuais[findKey(individuais, g.name)] || [],
+    gpGroup: pilaresPorGrupo[findKey(pilaresPorGrupo, g.name)] || {},
+  }));
+
+  return { grupos };
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESOLVE DADOS POR CHECKPOINT
+// ══════════════════════════════════════════════════════════════
+function getLastValue(obj, targetMonth) {
+  if (!obj) return undefined;
+  const idx = MONTH_COLS.indexOf(targetMonth);
+  for (let i = idx; i >= 0; i--) {
+    const v = obj[MONTH_COLS[i]];
+    if (v !== undefined && v !== null) return v;
+  }
+  return undefined;
+}
+
+function titleCase(s) {
+  const skip = ['de','do','da','dos','das','e','em','a','o','os','as','com','por','para','sem','op'];
+  return String(s).toLowerCase()
+    .split(' ')
+    .map((w, i) => (i === 0 || !skip.includes(w)) ? w.charAt(0).toUpperCase() + w.slice(1) : w)
+    .join(' ');
+}
+
+function buildPilares(gpGroup, mes) {
+  const PILAR_MAP = [
+    { keys: ['PROBLEMA'],              label: 'Problema bem definido' },
+    { keys: ['MODELO'],                label: 'Modelo de negócio' },
+    { keys: ['SOLUÇÃO', 'SOLUCAO'],    label: 'Solução e especificações' },
+    { keys: ['EXECUÇÃO', 'EXECUCAO'],  label: 'Execução' },
+    { keys: ['VALIDAÇÕES','RESULTADOS','POTENCIAL'], label: 'Validações / Resultados / Escala' },
+  ];
+
+  return PILAR_MAP.map(pm => {
+    let total = 0, achieved = 0;
+    Object.keys(gpGroup).forEach(pilarKey => {
+      const nk = pilarKey.toUpperCase().replace(/\s+/g,' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const matches = pm.keys.some(k => nk.includes(k.normalize('NFD').replace(/[\u0300-\u036f]/g,'')));
+      if (!matches) return;
+      const items = gpGroup[pilarKey] || [];
+      items.forEach(item => {
+        total++;
+        const v = item.values[mes] ?? getLastValue(item.values, mes) ?? 0;
+        if (v === 1) achieved++;
+      });
+    });
+    return { name: pm.label, pct: total > 0 ? achieved / total : 0 };
+  });
+}
+
+function resolveCheckpointData(dados, mesNome, checkN) {
+  return dados.grupos.map(g => {
+    // Progresso
+    let prog = g.progData[mesNome];
+    if (prog === null || prog === undefined)
+      prog = getLastValue(g.progData, mesNome) || 0;
+    prog = Math.round(prog * 100);
+
+    // Comportamental
+    const fb  = g.cgData.Feedback    ? (g.cgData.Feedback[mesNome]    ?? getLastValue(g.cgData.Feedback,    mesNome) ?? 0) : 0;
+    const col = g.cgData.Colaboração ? (g.cgData.Colaboração[mesNome]  ?? getLastValue(g.cgData.Colaboração, mesNome) ?? 0) : 0;
+    const eng = g.cgData.Engajamento ? (g.cgData.Engajamento[mesNome]  ?? getLastValue(g.cgData.Engajamento, mesNome) ?? 0) : 0;
+    const vals = [fb, col, eng].filter(v => v > 0);
+    const avg  = vals.length > 0 ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)) : 0;
+
+    // OBS do grupo (do Comport. Grupo)
+    const obs = g.cgData.obs || '';
+
+    // Members
+    // Find the month prior to mesNome for delta indicators
+    const mesIdx  = MONTH_COLS.indexOf(mesNome);
+    const prevMes = mesIdx > 0 ? MONTH_COLS[mesIdx - 1] : null;
+
+    const members = g.members.map(m => {
+      const engVal    = m.eng[mesNome]      ?? getLastValue(m.eng, mesNome)      ?? 0;
+      const destaqueV = m.destaque[mesNome] ?? getLastValue(m.destaque, mesNome) ?? false;
+      const obsV      = m.obs[mesNome]      || getLastValue(m.obs, mesNome)      || '';
+      const initials  = m.name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      // Previous month engagement for delta arrow
+      const engPrev = prevMes && m.eng[prevMes] !== undefined && m.eng[prevMes] !== null
+        ? (typeof m.eng[prevMes] === 'number' ? m.eng[prevMes] : parseFloat(m.eng[prevMes]) || null)
+        : null;
+      return {
+        name: titleCase(m.name),
+        initials,
+        eng:      typeof engVal === 'number' ? engVal : parseFloat(engVal) || 0,
+        engPrev,
+        destaque: destaqueV === true || String(destaqueV).toUpperCase() === 'S',
+        obs:      String(obsV || '').trim(),
+      };
+    });
+
+    const pillars = buildPilares(g.gpGroup, mesNome);
+
+    return { name: titleCase(g.name), prog, fb, col, eng, avg, members, pillars, obs,
+      _raw: g  // keep raw for heatmap historical access
+    };
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// GERADOR DE PPTX
+// ══════════════════════════════════════════════════════════════
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+
+function showError(msg) {
+  const eb = document.getElementById('errorBox');
+  eb.classList.add('visible');
+  document.getElementById('errorMsg').textContent = '⚠️ ' + msg;
+}
+
+async function gerarPPTX() {
+  document.getElementById('successBox').classList.remove('visible');
+  document.getElementById('errorBox').classList.remove('visible');
+  document.getElementById('progressWrap').classList.add('visible');
+  document.getElementById('btnGerar').disabled = true;
+  document.getElementById('btnText').textContent = 'Gerando...';
+
+  try {
+    const mesRef       = document.getElementById('mesRef').value.trim()       || 'Maio/2026';
+    const checkN       = parseInt(document.getElementById('checkpointNum').value);
+    const proximoMes   = document.getElementById('proximoMes').value.trim()   || 'Junho';
+    const totalCheck   = parseInt(document.getElementById('totalCheckpoints').value) || 8;
+    const proximoPasso = document.getElementById('proximoPasso').value.trim();
+    const mesNome      = mesRef.split('/')[0].trim();
+    const anoRef       = mesRef.includes('/') ? mesRef.split('/')[1].trim() : '2026';
+
+    setProgress(10, 'Processando dados da planilha...');
+    await sleep(50);
+
+    const grupos = resolveCheckpointData(dadosPlanilha, mesNome, checkN);
+    const avgProg  = grupos.length > 0 ? grupos.reduce((s,g)=>s+g.prog,0)/grupos.length : 0;
+    const avgCompt = grupos.length > 0 ? grupos.reduce((s,g)=>s+g.avg,0)/grupos.length : 0;
+    const exp      = expectedPct(checkN);
+
+    setProgress(25, 'Construindo slides...');
+    await sleep(50);
+
+    // Use PptxGenJS global (exposed by the bundle as "PptxGenJS")
+    const pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_16x9';
+    pptx.title  = `Programa de Estágio ${anoRef} — Acompanhamento ${mesRef}`;
+
+    const R  = pptx.shapes.RECTANGLE;
+    const RR = pptx.shapes.ROUNDED_RECTANGLE;
+    const OV = pptx.shapes.OVAL;
+
+    function addCard(s, x, y, w, h) {
+      s.addShape(RR, { x, y, w, h, rectRadius: 0.08, fill: { color: C.WHITE }, line: { color: C.BORDER, width: 0.5 }, shadow: shadow() });
+    }
+    function addBar(s, x, y, w, pct, color) {
+      s.addShape(R, { x, y, w, h: 0.09, fill: { color: 'E8D9C0' }, line: { color: 'E8D9C0', width: 0 } });
+      if (pct > 0) s.addShape(R, { x, y, w: w * Math.min(pct, 1), h: 0.09, fill: { color }, line: { color, width: 0 } });
+    }
+    function addPillarBar(s, x, y, w, pct, color) {
+      s.addShape(R, { x, y, w, h: 0.07, fill: { color: 'E8D9C0' }, line: { color: 'E8D9C0', width: 0 } });
+      if (pct > 0) s.addShape(R, { x, y, w: w * Math.min(pct, 1), h: 0.07, fill: { color }, line: { color, width: 0 } });
+    }
+    function headerBar(s, title, subtitle) {
+      s.addShape(R, { x: 0, y: 0,    w: 10, h: 0.72, fill: { color: C.PURPLE }, line: { color: C.PURPLE, width: 0 } });
+      s.addShape(R, { x: 0, y: 0.72, w: 10, h: 0.06, fill: { color: C.YELLOW }, line: { color: C.YELLOW, width: 0 } });
+      s.addText(title,    { x: 0.4, y: 0, w: 7.5, h: 0.72, fontSize: 18, bold: true, color: C.WHITE,      fontFace: FONT, valign: 'middle' });
+      s.addText(subtitle, { x: 7.6, y: 0, w: 2.2, h: 0.72, fontSize: 10, color: C.YELLOW_MID, fontFace: FONT, valign: 'middle', align: 'right' });
+    }
+
+    // ── SLIDE 1: CAPA ──────────────────────────────────────────
+    setProgress(30, 'Criando capa...');
+    await sleep(20);
+    {
+      const s = pptx.addSlide();
+      s.background = { color: C.PURPLE };
+      s.addShape(RR, { x: 2.0, y: 0.8, w: 6.0, h: 2.8, rectRadius: 0.3, fill: { color: 'FFF8E8' }, line: { color: C.YELLOW, width: 2 } });
+      s.addText('Programa de', { x: 2.0, y: 1.0, w: 6.0, h: 0.7, fontSize: 28, bold: true, color: C.YELLOW, fontFace: FONT, align: 'center' });
+      s.addText('Estágio',     { x: 2.0, y: 1.65,w: 6.0, h: 0.9, fontSize: 48, bold: true, color: C.YELLOW, fontFace: FONT, align: 'center' });
+      s.addText(anoRef,        { x: 2.0, y: 2.55,w: 6.0, h: 0.6, fontSize: 22, color: C.MUTED,  fontFace: FONT, align: 'center' });
+      s.addShape(RR, { x: 2.5, y: 4.1, w: 5.0, h: 0.6, rectRadius: 0.3, fill: { color: 'FFF8E8' }, line: { color: C.YELLOW, width: 1.5 } });
+      s.addText(`Acompanhamento checkpoint — ${mesNome}`, { x: 2.5, y: 4.1, w: 5.0, h: 0.6, fontSize: 13, color: C.DARK, fontFace: FONT, align: 'center', valign: 'middle' });
+    }
+
+    // ── SLIDE 2: VISÃO GERAL ────────────────────────────────────
+    setProgress(40, 'Criando visão geral...');
+    await sleep(20);
+    {
+      const s = pptx.addSlide();
+      s.background = { color: C.WHITE };
+      headerBar(s, 'Visão Geral do Programa — Atual', `Checkpoint ${checkN} · ${mesRef}`);
+
+      const cards = [
+        { value: `${avgProg.toFixed(1).replace('.',',')}%`, label1:'Progresso médio', label2:'do programa', sub:`esperado: ${exp.toFixed(1).replace('.',',')}%`, accent: C.YELLOW },
+        { value: avgCompt.toFixed(1).replace('.',','),       label1:'Comportamental', label2:'média geral',   sub:'escala 0–10',           accent: C.GREEN  },
+        { value: String(grupos.length),                       label1:'Grupos',        label2:'ativos',         sub:'projetos',              accent: C.PURPLE },
+        { value: `${checkN}/${totalCheck}`,                   label1:'Checkpoints',  label2:'concluídos',     sub:`próx. ${proximoMes}`,   accent: C.AMBER  },
+      ];
+      cards.forEach((m, i) => {
+        const cx = 0.3 + i * 2.38;
+        addCard(s, cx, 0.9, 2.2, 1.2);
+        s.addShape(R, { x: cx, y: 0.9, w: 2.2, h: 0.055, fill: { color: m.accent }, line: { color: m.accent, width: 0 } });
+        s.addText(m.value,  { x: cx+0.12, y: 1.00, w: 1.96, h: 0.52, fontSize: 28, bold: true, color: C.DARK, fontFace: FONT });
+        s.addText(m.label1, { x: cx+0.12, y: 1.52, w: 1.96, h: 0.18, fontSize: 9,  color: C.MUTED, fontFace: FONT });
+        s.addText(m.label2, { x: cx+0.12, y: 1.68, w: 1.96, h: 0.18, fontSize: 9,  color: C.MUTED, fontFace: FONT });
+        s.addText(m.sub,    { x: cx+0.12, y: 1.87, w: 1.96, h: 0.16, fontSize: 8,  bold: true, color: m.accent, fontFace: FONT });
+      });
+
+      s.addText(`Resumo por grupo — Dados referentes ao checkpoint de ${mesRef}`, { x: 0.3, y: 2.22, w: 9.4, h: 0.28, fontSize: 10, bold: true, color: C.PURPLE, fontFace: FONT });
+
+      const cols = [2.62, 2.05, 1.00, 1.00, 0.97, 1.76];
+      const cx0 = 0.3, hdrY = 2.56;
+      s.addShape(RR, { rectRadius: 0.06, x: cx0, y: hdrY, w: 9.4, h: 0.3, fill: { color: C.PURPLE }, line: { color: C.PURPLE, width: 0 } });
+      ['Grupo','Progresso','Feedback','Colaboração','Engajamento','Méd. Comportamental'].forEach((h, i) => {
+        const xc = cx0 + cols.slice(0,i).reduce((a,b)=>a+b,0);
+        s.addText(h, { x: xc+0.04, y: hdrY, w: cols[i]-0.06, h: 0.3, fontSize: 8.5, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle' });
+      });
+
+      grupos.forEach((g, i) => {
+        const ry  = hdrY + 0.3 + i * 0.315;
+        const bg  = i % 2 === 0 ? C.WHITE : 'F9F9F9';
+        s.addShape(RR, { rectRadius: 0.05, x: cx0, y: ry, w: 9.4, h: 0.315, fill: { color: bg }, line: { color: C.BORDER, width: 0.3 } });
+        const st = progStatus(g.prog, checkN);
+        s.addText(g.name, { x: cx0+0.08, y: ry, w: cols[0]-0.1, h: 0.315, fontSize: 9.5, color: C.DARK, fontFace: FONT, valign: 'middle' });
+        const barX = cx0 + cols[0] + 0.06;
+        addBar(s, barX, ry+0.13, 1.35, g.prog/100, st.color);
+        s.addText(`${g.prog}%`, { x: barX+1.38, y: ry, w: 0.55, h: 0.315, fontSize: 8.5, bold: true, color: st.color, fontFace: FONT, valign: 'middle' });
+        const vals2 = [g.fb, g.col, g.eng, g.avg];
+        [0,1,2,3].forEach(j => {
+          const xc2 = cx0 + cols.slice(0,j+2).reduce((a,b)=>a+b,0) + 0.08;
+          s.addText(j<3 ? String(vals2[j]) : vals2[j].toFixed(1), { x: xc2, y: ry, w: cols[j+2]-0.1, h: 0.315, fontSize: 9.5, bold: true, color: behavColor(vals2[j]), fontFace: FONT, valign: 'middle' });
+        });
+      });
+
+      s.addText(`Base 16% (entrega) + 10,5pp/mês · Ótimo ≥ ${exp.toFixed(1)}% · Satisfatório ≥ ${(exp*0.8).toFixed(1)}% · Atenção ≥ ${(exp*0.6).toFixed(1)}% · Crítico < ${(exp*0.6).toFixed(1)}%`,
+        { x: 0.3, y: 5.3, w: 9.4, h: 0.22, fontSize: 8.5, italic: true, color: C.MUTED, fontFace: FONT });
+    }
+
+
+    // ── SLIDE RETROSPECTIVA — HEATMAP ──────────────────────────
+    setProgress(38, 'Criando slide de retrospectiva...');
+    await sleep(20);
+    {
+      const sr = pptx.addSlide();
+      sr.background = { color: C.WHITE };
+      headerBar(sr, 'Visão Geral — Retrospectiva', `Histórico · ${anoRef}`);
+
+      const MESES_FULL = ['Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro'];
+      const expectedPctArr = MESES_FULL.map((_, i) => 16 + 10.5 * (i + 1));
+
+      // Collect all months that have any data (prog or comp)
+      const mesesComDados = MESES_FULL.filter(m2 =>
+        dadosPlanilha.grupos.some(g2 => {
+          const v = g2.progData[m2];
+          return v !== null && v !== undefined;
+        })
+      );
+      // Show all 8 months on axis; mark which have data
+      const allMeses = MESES_FULL;
+
+      // ── TABLE 1: Gestão de Projeto (% progresso) ──
+      const t1Y = 0.92, t1H = 0.26;
+      sr.addText('Gestão de Projeto — % de Progresso por Grupo', {
+        x: 0.3, y: t1Y, w: 9.4, h: t1H, fontSize: 10, bold: true, color: C.PURPLE, fontFace: FONT
+      });
+
+      const nameW = 2.0;
+      const mColW = (9.4 - nameW) / allMeses.length;
+      const hdrH2  = 0.26;
+      const rowH2  = 0.30;
+      const t1Start = t1Y + t1H;
+
+      // Header row
+      sr.addShape(RR, { rectRadius: 0.05, x: 0.3, y: t1Start, w: 9.4, h: hdrH2, fill: { color: C.PURPLE }, line: { color: C.PURPLE, width: 0 } });
+      sr.addText('Grupo', { x: 0.38, y: t1Start, w: nameW - 0.1, h: hdrH2, fontSize: 8, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle' });
+      allMeses.forEach((m2, mi) => {
+        const xc = 0.3 + nameW + mi * mColW;
+        const isCurrent = m2 === mesNome;
+        sr.addText(m2.substring(0,3), { x: xc, y: t1Start, w: mColW, h: hdrH2, fontSize: 8, bold: isCurrent, color: isCurrent ? C.YELLOW_MID : C.WHITE, fontFace: FONT, valign: 'middle', align: 'center' });
+      });
+
+      // Group rows
+      grupos.forEach((g2, gi) => {
+        const ry = t1Start + hdrH2 + gi * rowH2;
+        const bg = gi % 2 === 0 ? C.WHITE : 'F9F9F9';
+        sr.addShape(RR, { rectRadius: 0.04, x: 0.3, y: ry, w: 9.4, h: rowH2, fill: { color: bg }, line: { color: C.BORDER, width: 0.3 } });
+        sr.addText(g2.name, { x: 0.38, y: ry, w: nameW - 0.1, h: rowH2, fontSize: 8, color: C.DARK, fontFace: FONT, valign: 'middle' });
+
+        allMeses.forEach((m2, mi) => {
+          const xc  = 0.3 + nameW + mi * mColW;
+          const raw = g2._raw.progData[m2];
+          const hasData = raw !== null && raw !== undefined;
+          const val = hasData ? Math.round(raw * 100) : null;
+
+          if (!hasData) {
+            // No data yet — show empty with muted style
+            sr.addShape(R, { x: xc + 0.03, y: ry + 0.04, w: mColW - 0.06, h: rowH2 - 0.08, fill: { color: 'F5F5F5' }, line: { color: 'F5F5F5', width: 0 } });
+            sr.addText('—', { x: xc + 0.03, y: ry + 0.04, w: mColW - 0.06, h: rowH2 - 0.08, fontSize: 9, color: 'CCCCCC', fontFace: FONT, align: 'center', valign: 'middle' });
+          } else {
+            const exp2 = expectedPctArr[mi];
+            let bgCell, fgCell;
+            if (val >= exp2)         { bgCell = 'E8F7EF'; fgCell = '1a6b3c'; }
+            else if (val >= exp2*0.8) { bgCell = 'FEF3E2'; fgCell = '7a4a00'; }
+            else                      { bgCell = 'FDECEC'; fgCell = '8b1a1a'; }
+            sr.addShape(RR, { rectRadius: 0.04, x: xc + 0.03, y: ry + 0.04, w: mColW - 0.06, h: rowH2 - 0.08, fill: { color: bgCell }, line: { color: bgCell, width: 0 } });
+            sr.addText(`${val}%`, { x: xc + 0.03, y: ry + 0.04, w: mColW - 0.06, h: rowH2 - 0.08, fontSize: 9, bold: true, color: fgCell, fontFace: FONT, align: 'center', valign: 'middle' });
+          }
+        });
+      });
+
+      // ── TABLE 2: Comportamental ──
+      const t2Y = t1Start + hdrH2 + grupos.length * rowH2 + 0.22;
+      sr.addText('Comportamental — Média por Grupo', {
+        x: 0.3, y: t2Y, w: 9.4, h: t1H, fontSize: 10, bold: true, color: C.PURPLE, fontFace: FONT
+      });
+      const t2Start = t2Y + t1H;
+
+      sr.addShape(RR, { rectRadius: 0.05, x: 0.3, y: t2Start, w: 9.4, h: hdrH2, fill: { color: C.PURPLE }, line: { color: C.PURPLE, width: 0 } });
+      sr.addText('Grupo', { x: 0.38, y: t2Start, w: nameW - 0.1, h: hdrH2, fontSize: 8, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle' });
+      allMeses.forEach((m2, mi) => {
+        const xc = 0.3 + nameW + mi * mColW;
+        const isCurrent = m2 === mesNome;
+        sr.addText(m2.substring(0,3), { x: xc, y: t2Start, w: mColW, h: hdrH2, fontSize: 8, bold: isCurrent, color: isCurrent ? C.YELLOW_MID : C.WHITE, fontFace: FONT, valign: 'middle', align: 'center' });
+      });
+
+      grupos.forEach((g2, gi) => {
+        const ry = t2Start + hdrH2 + gi * rowH2;
+        const bg = gi % 2 === 0 ? C.WHITE : 'F9F9F9';
+        sr.addShape(RR, { rectRadius: 0.04, x: 0.3, y: ry, w: 9.4, h: rowH2, fill: { color: bg }, line: { color: C.BORDER, width: 0.3 } });
+        sr.addText(g2.name, { x: 0.38, y: ry, w: nameW - 0.1, h: rowH2, fontSize: 8, color: C.DARK, fontFace: FONT, valign: 'middle' });
+
+        allMeses.forEach((m2, mi) => {
+          const xc   = 0.3 + nameW + mi * mColW;
+          const cg   = g2._raw.cgData;
+          const fb2  = cg.Feedback    ? (cg.Feedback[m2]    || null) : null;
+          const co2  = cg.Colaboração ? (cg.Colaboração[m2]  || null) : null;
+          const en2  = cg.Engajamento ? (cg.Engajamento[m2]  || null) : null;
+          const vals3 = [fb2, co2, en2].filter(v => v !== null && v > 0);
+          const avgC  = vals3.length > 0 ? vals3.reduce((a,b)=>a+b,0)/vals3.length : null;
+
+          if (avgC === null) {
+            sr.addShape(R, { x: xc+0.03, y: ry+0.04, w: mColW-0.06, h: rowH2-0.08, fill: { color: 'F5F5F5' }, line: { color: 'F5F5F5', width: 0 } });
+            sr.addText('—', { x: xc+0.03, y: ry+0.04, w: mColW-0.06, h: rowH2-0.08, fontSize: 9, color: 'CCCCCC', fontFace: FONT, align: 'center', valign: 'middle' });
+          } else {
+            let bgCell, fgCell;
+            if (avgC >= 8)      { bgCell = 'E8F7EF'; fgCell = '1a6b3c'; }
+            else if (avgC >= 6) { bgCell = 'FEF3E2'; fgCell = '7a4a00'; }
+            else                 { bgCell = 'FDECEC'; fgCell = '8b1a1a'; }
+            sr.addShape(RR, { rectRadius: 0.04, x: xc+0.03, y: ry+0.04, w: mColW-0.06, h: rowH2-0.08, fill: { color: bgCell }, line: { color: bgCell, width: 0 } });
+            sr.addText(avgC.toFixed(1), { x: xc+0.03, y: ry+0.04, w: mColW-0.06, h: rowH2-0.08, fontSize: 9, bold: true, color: fgCell, fontFace: FONT, align: 'center', valign: 'middle' });
+          }
+        });
+      });
+
+      // Legend
+      const legY = t2Start + hdrH2 + grupos.length * rowH2 + 0.14;
+      sr.addText('Legenda:', { x: 0.3, y: legY, w: 0.7, h: 0.2, fontSize: 8, color: C.MUTED, fontFace: FONT, valign: 'middle' });
+      [
+        { bg: 'E8F7EF', fg: '1a6b3c', label: 'No prazo / Ótimo' },
+        { bg: 'FEF3E2', fg: '7a4a00', label: 'Atenção' },
+        { bg: 'FDECEC', fg: '8b1a1a', label: 'Crítico' },
+        { bg: 'F5F5F5', fg: 'AAAAAA', label: 'Sem dados' },
+      ].forEach((l, li) => {
+        const lx = 1.05 + li * 2.1;
+        sr.addShape(RR, { rectRadius: 0.03, x: lx, y: legY+0.01, w: 1.95, h: 0.18, fill: { color: l.bg }, line: { color: l.bg, width: 0 } });
+        sr.addText(l.label, { x: lx, y: legY+0.01, w: 1.95, h: 0.18, fontSize: 7.5, bold: true, color: l.fg, fontFace: FONT, align: 'center', valign: 'middle' });
+      });
+      sr.addText(`Mês atual destacado no cabeçalho · ${mesRef}`, {
+        x: 0.3, y: legY + 0.24, w: 9.4, h: 0.18, fontSize: 7.5, italic: true, color: C.MUTED, fontFace: FONT
+      });
+    }
+
+    // ── SLIDES DE GRUPO ────────────────────────────────────────
+    for (let gi = 0; gi < grupos.length; gi++) {
+      const g = grupos[gi];
+      setProgress(45 + Math.round((gi/grupos.length)*45), `Criando slide: ${g.name}...`);
+      await sleep(10);
+
+      const s = pptx.addSlide();
+      s.background = { color: C.WHITE };
+      headerBar(s, g.name, `Checkpoint ${mesNome} ${anoRef}`);
+
+      const lx = 0.3, rx = 4.85;
+      const st = progStatus(g.prog, checkN);
+      const bc = behavColor(g.avg);
+
+      addCard(s, lx, 0.9, 2.12, 1.0);
+      s.addShape(R, { x: lx, y: 0.9, w: 2.12, h: 0.055, fill: { color: st.color }, line: { color: st.color, width: 0 } });
+      s.addText(`${g.prog}%`,           { x: lx+0.12, y: 0.98, w: 1.88, h: 0.52, fontSize: 30, bold: true, color: C.DARK, fontFace: FONT });
+      s.addText('Progresso do projeto', { x: lx+0.12, y: 1.50, w: 1.88, h: 0.28, fontSize: 9,  color: C.MUTED, fontFace: FONT });
+      s.addText(st.label,               { x: lx+0.12, y: 1.75, w: 1.88, h: 0.12, fontSize: 8,  bold: true, color: st.color, fontFace: FONT });
+
+      addCard(s, lx+2.22, 0.9, 2.12, 1.0);
+      s.addShape(R, { x: lx+2.22, y: 0.9, w: 2.12, h: 0.055, fill: { color: bc }, line: { color: bc, width: 0 } });
+      s.addText(g.avg.toFixed(1),        { x: lx+2.34, y: 0.98, w: 1.88, h: 0.52, fontSize: 30, bold: true, color: C.DARK, fontFace: FONT });
+      s.addText('Comportamental médio',  { x: lx+2.34, y: 1.50, w: 1.88, h: 0.28, fontSize: 9,  color: C.MUTED, fontFace: FONT });
+
+      [{label:'Feedback',val:g.fb},{label:'Colaboração',val:g.col},{label:'Engajamento',val:g.eng}].forEach((c,ci) => {
+        const cx2 = lx + ci * 1.5;
+        addCard(s, cx2, 2.02, 1.38, 0.62);
+        s.addText(String(c.val), { x: cx2, y: 2.04, w: 1.38, h: 0.34, fontSize: 20, bold: true, color: behavColor(c.val), fontFace: FONT, valign: 'middle', align: 'center' });
+        s.addText(c.label,       { x: cx2, y: 2.38, w: 1.38, h: 0.22, fontSize: 8.5, color: C.MUTED, fontFace: FONT, valign: 'top', align: 'center' });
+      });
+
+      s.addText('Progresso por pilar', { x: lx, y: 2.75, w: 4.3, h: 0.26, fontSize: 10, bold: true, color: C.PURPLE, fontFace: FONT });
+      g.pillars.forEach((p, pi) => {
+        const py = 3.07 + pi * 0.42;
+        const pc = p.pct >= 0.8 ? C.GREEN : p.pct >= 0.5 ? C.AMBER : p.pct > 0 ? C.YELLOW : 'CCCCCC';
+        s.addText(p.name, { x: lx, y: py, w: 3.3, h: 0.2, fontSize: 9, color: C.DARK, fontFace: FONT });
+        s.addText(`${Math.round(p.pct*100)}%`, { x: lx+3.35, y: py, w: 0.62, h: 0.2, fontSize: 9, bold: true, color: pc, fontFace: FONT, align: 'right' });
+        addPillarBar(s, lx, py+0.22, 4.1, p.pct, pc);
+      });
+
+      if (g.obs) {
+        s.addShape(RR, { x: lx, y: 5.1, w: 4.3, h: 0.38, rectRadius: 0.06, fill: { color: C.PURPLE_SOFT }, line: { color: C.PURPLE_MID, width: 0.5 } });
+        s.addText(`"${g.obs}"`, { x: lx+0.12, y: 5.1, w: 4.06, h: 0.38, fontSize: 8.5, italic: true, color: C.PURPLE, fontFace: FONT, valign: 'middle' });
+      }
+
+      s.addText('Avaliação individual — Engajamento', { x: rx, y: 0.9, w: 4.85, h: 0.26, fontSize: 10, bold: true, color: C.PURPLE, fontFace: FONT });
+      s.addShape(RR, { rectRadius: 0.06, x: rx, y: 1.2, w: 4.85, h: 0.27, fill: { color: C.PURPLE }, line: { color: C.PURPLE, width: 0 } });
+      s.addText('Participante', { x: rx+0.08, y: 1.2, w: 3.3,  h: 0.27, fontSize: 8.5, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle' });
+      s.addText('Nota',  { x: rx+3.38, y: 1.2, w: 0.52, h: 0.27, fontSize: 8, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle', align: 'center' });
+      s.addText('↕',     { x: rx+3.90, y: 1.2, w: 0.30, h: 0.27, fontSize: 9, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle', align: 'center' });
+      s.addText('Dest.', { x: rx+4.20, y: 1.2, w: 0.58, h: 0.27, fontSize: 8, bold: true, color: C.WHITE, fontFace: FONT, valign: 'middle', align: 'center' });
+
+      const rowH  = g.members.length <= 5 ? 0.42 : 0.35;
+      const obsFz = g.members.length <= 5 ? 7.5 : 7;
+      const blockH = 0.31;
+
+      g.members.forEach((m, mi) => {
+        const ry2  = 1.47 + mi * rowH;
+        const bg   = mi % 2 === 0 ? C.WHITE : 'F9F9F9';
+        s.addShape(RR, { rectRadius: 0.05, x: rx, y: ry2, w: 4.85, h: rowH, fill: { color: bg }, line: { color: C.BORDER, width: 0.3 } });
+        const cFill = m.destaque ? C.YELLOW : C.PURPLE_SOFT;
+        const cText = m.destaque ? C.DARK   : C.PURPLE_MID;
+        const circY = ry2 + rowH/2 - 0.135;
+        s.addShape(OV, { x: rx+0.08, y: circY, w: 0.27, h: 0.27, fill: { color: cFill }, line: { color: cFill, width: 0 } });
+        s.addText(m.initials, { x: rx+0.08, y: circY, w: 0.27, h: 0.27, fontSize: 7, bold: true, color: cText, fontFace: FONT, align: 'center', valign: 'middle' });
+        const textW  = m.destaque ? 2.55 : 3.0;
+        const blockY = ry2 + (rowH - blockH) / 2;
+        s.addText(m.name, { x: rx+0.42, y: blockY,           w: textW, h: 0.155,           fontSize: 9,     color: C.DARK, fontFace: FONT, valign: 'top' });
+        if (m.obs) {
+          s.addText(m.obs, { x: rx+0.42, y: blockY+0.160,    w: textW, h: blockH - 0.160,  fontSize: obsFz, italic: true, color: C.MUTED, fontFace: FONT, valign: 'top' });
+        }
+        s.addText(String(m.eng), { x: rx+3.38, y: ry2, w: 0.52, h: rowH, fontSize: 11, bold: true, color: behavColor(m.eng), fontFace: FONT, align: 'center', valign: 'middle' });
+        // Delta arrow vs previous month
+        if (m.engPrev !== null && m.engPrev !== undefined) {
+          const diff = m.eng - m.engPrev;
+          const arrowTxt  = diff > 0 ? '▲' : diff < 0 ? '▼' : '—';
+          const arrowClr  = diff > 0 ? C.GREEN : diff < 0 ? C.RED : C.MUTED;
+          s.addText(arrowTxt, { x: rx+3.90, y: ry2, w: 0.30, h: rowH, fontSize: 8, bold: true, color: arrowClr, fontFace: FONT, align: 'center', valign: 'middle' });
+        }
+        if (m.destaque) {
+          const bY = ry2 + rowH/2 - 0.11;
+          s.addShape(RR, { x: rx+4.20, y: bY, w: 0.58, h: 0.22, rectRadius: 0.05, fill: { color: C.YELLOW_MID }, line: { color: C.YELLOW, width: 0.5 } });
+          s.addText('Dest.', { x: rx+4.20, y: bY, w: 0.58, h: 0.22, fontSize: 7, bold: true, color: C.DARK, fontFace: FONT, align: 'center', valign: 'middle' });
+        }
+      });
+
+    }
+
+    // ── SLIDE FINAL ────────────────────────────────────────────
+    setProgress(93, 'Criando slide final...');
+    await sleep(20);
+    {
+      const s = pptx.addSlide();
+      s.background = { color: C.PURPLE };
+      s.addShape(R, { x: 0, y: 5.3, w: 10, h: 0.325, fill: { color: C.YELLOW }, line: { color: C.YELLOW, width: 0 } });
+      s.addText('Próximos passos', { x: 0.6, y: 0.8, w: 9, h: 0.7, fontSize: 32, bold: true, color: C.WHITE, fontFace: FONT });
+      s.addText('Checkpoint',      { x: 0.6, y: 1.5, w: 9, h: 0.3, fontSize: 12, color: C.YELLOW_MID, fontFace: FONT });
+
+      const texto = proximoPasso || `Próximo checkpoint: ${proximoMes} — foco em evolução dos pilares e apresentação estruturada.`;
+      s.addShape(OV, { x: 0.6, y: 2.0, w: 0.42, h: 0.42, fill: { color: C.YELLOW }, line: { color: C.YELLOW, width: 0 } });
+      s.addText('1',    { x: 0.6,  y: 2.0, w: 0.42, h: 0.42, fontSize: 14, bold: true, color: C.DARK,  fontFace: FONT, align: 'center', valign: 'middle' });
+      s.addText(texto,  { x: 1.18, y: 2.0, w: 8.4,  h: 0.6,  fontSize: 13, color: C.LILAC, fontFace: FONT, valign: 'middle' });
+      s.addText(`Programa de Estágio ${anoRef}`, { x: 0.6, y: 5.3, w: 8.8, h: 0.325, fontSize: 9, color: C.DARK, fontFace: FONT, valign: 'middle' });
+    }
+
+    setProgress(97, 'Salvando arquivo...');
+    await sleep(50);
+
+    const fileName = `Acompanhamento_${mesNome}_${anoRef}_Checkpoint${checkN}.pptx`;
+    await pptx.writeFile({ fileName });
+
+    setProgress(100, 'Concluído!');
+    document.getElementById('successBox').classList.add('visible');
+    document.getElementById('successDetail').textContent =
+      `${grupos.length + 3} slides gerados · ${fileName}`;
+
+  } catch(err) {
+    showError(err.message || 'Erro inesperado ao gerar o PPTX.');
+    console.error(err);
+  } finally {
+    document.getElementById('btnGerar').disabled = false;
+    document.getElementById('btnText').textContent = 'Gerar apresentação PPTX';
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+</script>
+</body>
+</html>
